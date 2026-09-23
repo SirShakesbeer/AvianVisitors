@@ -1,3 +1,58 @@
+## Über diesen Fork
+
+Dieses Repository ist ein Fork des ursprünglichen [AvianVisitors-Repositories von Twarner491](https://github.com/Twarner491/AvianVisitors). AvianVisitors selbst ist ein Fork von [BirdNET-Pi](https://github.com/Nachtzuster/BirdNET-Pi).
+
+Die Änderungen in den letzten Commits dieses Forks sind:
+
+- deutsche Standardsprache für die Oberfläche und die Vogelartdatenbank (`DATABASE_LANG=de`)
+- deutsche Datums-, Zahlen-, Statistik- und Statusbeschriftungen in der AvianVisitors-Oberfläche
+- deutsche Wikipedia-Beschreibungen und Wikipedia-Links in der Vogelansicht
+- deutsche Fallback-Namen für die lokale Vorschau
+- zusätzliche regionale Illustrationen für deutschsprachige beziehungsweise europäische Vogelarten
+- GitHub-Workflow zur Synchronisierung mit dem Upstream-Repository
+
+### Setup und Updates
+
+Für eine neue Station den Installer dieses Forks verwenden:
+
+```bash
+ssh <benutzer>@birdnet.local
+curl -fsSL https://raw.githubusercontent.com/Twarner491/AvianVisitors/avian-visitors/newinstaller.sh | bash
+```
+
+Für eine Installation mit aktivierter Educators-Funktion:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Twarner491/AvianVisitors/avian-visitors/newinstaller.sh | bash -s -- --educators
+```
+
+### Bestehende Station aktualisieren
+
+Für das erste Update einer älteren Installation das einmalige Migrationsskript ausführen:
+
+```bash
+upgrade=$(mktemp "$HOME/avian-v1-upgrade.XXXXXX")
+curl -fsSL https://raw.githubusercontent.com/Twarner491/AvianVisitors/avian-visitors/scripts/bootstrap_v1.sh -o "$upgrade"
+sudo bash "$upgrade"
+rm -f "$upgrade"
+```
+
+Nach diesem ersten Update:
+
+```bash
+cd ~/BirdNET-Pi
+./scripts/update_birdnet.sh
+```
+
+Alternativ kann im Administrationsmenü **Tools → Pull latest** verwendet werden. Wenn die Dienstdefinitionen repariert werden müssen:
+
+```bash
+cd ~/BirdNET-Pi
+./scripts/reinstall_services.sh
+```
+
+Der Updater bewahrt generierte Illustrationsmasken und bricht bei nicht gespeicherten Änderungen an versionierten Dateien ab. Lokale Änderungen deshalb vor dem Update sichern oder zurückführen.
+
 # AvianVisitors
 
 *A live bird collage from your window.*
