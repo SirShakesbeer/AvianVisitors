@@ -1,0 +1,53 @@
+name: Sync upstream
+
+on:
+  schedule:
+    - cron: '17 3 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+
+      - name: Compare and merge upstream
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          UPSTREAM_REPOSITORY: mcguirepr89/BirdNET-Pi
+        run: |
+          set -euo pipefail
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git remote add upstream "https://github.com/${UPSTREAM_REPOSITORY}.git"
+          git fetch --no-tags upstream main
+
+          if git merge-base --is-ancestor upstream/main HEAD; then
+            echo 'Fork is already up to date with upstream/main.'
+            exit 0
+          fi
+
+          upstream_commit=$(git rev-parse upstream/main)
+          local_commit=$(git rev-parse HEAD)
+          echo "Syncing ${local_commit} with upstream ${upstream_commit}."
+
+          if ! git merge --no-edit upstream/main; then
+            git merge --abort
+            gh issue create \
+              --title 'Upstream sync requires manual conflict resolution' \
+              --body "The monthly sync could not merge mcguirepr89/BirdNET-Pi/main into ${DEFAULT_BRANCH}. Resolve the conflicts locally and close this issue afterwards."
+            exit 1
+          fi
+
+          git push origin "HEAD:${DEFAULT_BRANCH}"

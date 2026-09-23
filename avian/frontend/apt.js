@@ -1,5 +1,5 @@
 (function () {
-  var PLACEHOLDER = [{ "sci": "Calypte anna", "com": "Anna's Hummingbird", "featured": true }, { "sci": "Passer domesticus", "com": "House Sparrow" }, { "sci": "Haemorhous mexicanus", "com": "House Finch" }, { "sci": "Turdus migratorius", "com": "American Robin" }, { "sci": "Zenaida macroura", "com": "Mourning Dove" }, { "sci": "Spinus psaltria", "com": "Lesser Goldfinch" }, { "sci": "Zonotrichia leucophrys", "com": "White-crowned Sparrow" }, { "sci": "Aphelocoma californica", "com": "California Scrub-Jay" }, { "sci": "Mimus polyglottos", "com": "Northern Mockingbird" }, { "sci": "Sayornis nigricans", "com": "Black Phoebe" }, { "sci": "Larus occidentalis", "com": "Western Gull" }, { "sci": "Corvus brachyrhynchos", "com": "American Crow" }];
+  var PLACEHOLDER = [{ "sci": "Calypte anna", "com": "Annas Kolibri", "featured": true }, { "sci": "Passer domesticus", "com": "Haussperling" }, { "sci": "Haemorhous mexicanus", "com": "Hausgimpel" }, { "sci": "Turdus migratorius", "com": "Wanderdrossel" }, { "sci": "Zenaida macroura", "com": "Trauertaube" }, { "sci": "Spinus psaltria", "com": "Goldzeisig" }, { "sci": "Zonotrichia leucophrys", "com": "Weißkronenammer" }, { "sci": "Aphelocoma californica", "com": "Kalifornienbuschhäher" }, { "sci": "Mimus polyglottos", "com": "Spottdrossel" }, { "sci": "Sayornis nigricans", "com": "Schwarzkopfphoebe" }, { "sci": "Larus occidentalis", "com": "Westmöwe" }, { "sci": "Corvus brachyrhynchos", "com": "Amerikanerkrähe" }];
   // Library-wide revision for a full offline sketch rebuild. One-species
   // corrections use ART_REVISIONS below.
   var SKETCH_VERSION = 'r12'; // r12: 84 eastern NA birds (PR #23) refined + re-cut. r11: full library restyle: every species
@@ -82,8 +82,8 @@
   // Each view's title text. The shared static-head shows one of these
   // based on the current view; identical adjacent values mean the title
   // stays put with no fade (collage and stats both say Heard Recently).
-  var VIEW_TITLES = ['Heard Recently', 'Heard Recently', 'Avian Atlas'];
-  var EMPTY_WINDOW_COPY = 'no detections heard in this window';
+  var VIEW_TITLES = ['Zuletzt gehört', 'Zuletzt gehört', 'Vogelatlas'];
+  var EMPTY_WINDOW_COPY = 'In diesem Zeitraum wurden keine Vögel gehört';
   var staticHead = document.querySelector('.static-head');
   var staticTitle = document.getElementById('staticTitle');
   function applySiteName(value) {
@@ -385,7 +385,7 @@
   function educatorScopeLabel(scope) {
     if (!scope) return '';
     if (scope.label) return scope.label;
-    return scope.kind === 'folder' ? 'Saved folder' : 'Listening period';
+    return scope.kind === 'folder' ? 'Gespeicherter Ordner' : 'Hörzeitraum';
   }
   function educatorSpeciesCacheAllowed(scopeId) {
     return !validEducatorScopeKey(scopeId);
@@ -425,7 +425,7 @@
     var status = document.getElementById('educatorDataLoading');
     if (status) {
       status.hidden = !loading;
-      if (loading && !educatorScopeBlocked) status.textContent = 'loading birds...';
+      if (loading && !educatorScopeBlocked) status.textContent = 'Lade Vögel ...';
     }
   }
   function educatorScopeRequestCurrent(request) {
@@ -3211,31 +3211,31 @@
   function fmtN(n) {
     if (n == null) return '-';
     if (n >= 10000) return (n / 1000).toFixed(1) + 'k';
-    return n.toLocaleString();
+    return n.toLocaleString('de-DE');
   }
   // Compact count for atlas cards (1K, 1.2K); the modal keeps the exact number.
   function fmtNK(n) {
     if (n == null) return '-';
-    return n < 1000 ? n.toLocaleString() : +(n / 1000).toFixed(1) + 'K';
+    return n < 1000 ? n.toLocaleString('de-DE') : (n / 1000).toFixed(1).replace('.', ',') + ' Tsd.';
   }
   // Human label for the current time-window picker selection - replaces
   // a bare "window" with the span it actually covers. Thresholds match
   // the winPick buttons (1H / 12H / 24H / 7D / ALL).
   function windowLabel(h, windowData) {
-    if (windowData && windowData.midnight_clamped) return 'since midnight';
-    if (h <= 1) return 'this hour';
-    if (h <= 12) return 'past 12h';
-    if (h <= 24) return 'past 24h';
-    if (h <= 168) return 'past 7d';
-    return 'all time';
+    if (windowData && windowData.midnight_clamped) return 'seit Mitternacht';
+    if (h <= 1) return 'diese Stunde';
+    if (h <= 12) return 'letzte 12 Std.';
+    if (h <= 24) return 'letzte 24 Std.';
+    if (h <= 168) return 'letzte 7 Tage';
+    return 'gesamter Zeitraum';
   }
   function statsWindowLabel(h) {
     if (!hourlyDate) return windowLabel(h, DATA.statsRecent || DATA.recent);
-    if (h <= 1) return 'selected hour';
-    if (h <= 12) return 'final 12h';
-    if (h <= 24) return 'selected day';
-    if (h <= 168) return 'selected 7 days';
-    return 'through selected day';
+    if (h <= 1) return 'ausgewählte Stunde';
+    if (h <= 12) return 'letzte 12 Stunden';
+    if (h <= 24) return 'ausgewählter Tag';
+    if (h <= 168) return 'ausgewählte 7 Tage';
+    return 'bis zum ausgewählten Tag';
   }
 
   // ---- Live Pi data layer ----
@@ -3382,10 +3382,10 @@
       if (isNaN(ms)) return '';
       var d = new Date(ms);
       var p2 = function (n) { return n < 10 ? '0' + n : '' + n; };
-      if (educatorScopeId()) return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      if (educatorScopeId()) return d.toLocaleDateString('de-DE', { month: 'short', day: 'numeric' });
       if (currentHours <= 36) return p2(d.getHours()) + ':' + p2(d.getMinutes());
       if (currentHours <= 75 * 24) return (d.getMonth() + 1) + '/' + d.getDate();
-      return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      return d.toLocaleDateString('de-DE', { month: 'short', day: 'numeric' });
     }
 
     // Faint gridlines at every column boundary. Start at gi=1: the gi=0
@@ -3421,7 +3421,7 @@
     });
 
     var note = trimmed
-      ? '<div class="stats-tl-cap">' + C + ' most-heard of ' + all.length + '</div>'
+      ? '<div class="stats-tl-cap">' + C + ' meistgehörte von ' + all.length + '</div>'
       : '';
     tl.innerHTML =
       '<div class="stats-tl-yaxis">' + yaxis + '</div>'
@@ -3477,22 +3477,22 @@
     var firstSeenCap = document.getElementById('statsFirstSeenCap');
     var scopedLabel = educatorScopeId() ? educatorScopeLabel(effectiveEducatorScope) : '';
     if (byPeriodCap) byPeriodCap.textContent = scopedLabel
-      ? 'detections in ' + scopedLabel
+      ? 'Erkennungen in ' + scopedLabel
       : past
-      ? 'detections through ' + shortStatsDate(stats.date)
-      : 'detections, grouped by recency';
+      ? 'Erkennungen bis ' + shortStatsDate(stats.date)
+      : 'Erkennungen nach Aktualität gruppiert';
     if (firstSeenCap) firstSeenCap.textContent = scopedLabel
-      ? 'first detections in ' + scopedLabel
+      ? 'erste Erkennungen in ' + scopedLabel
       : past
       ? 'life list as of ' + shortStatsDate(stats.date)
-      : 'newest additions to the life list';
+      : 'neueste Einträge in der Lebensliste';
     document.getElementById('statsByPeriod').innerHTML = scopedLabel
-      ? liRow('CALLS', 'detections', fmtN(all_det))
-        + liRow('BIRDS', 'unique species', fmtN((((DATA.lifelist || {}).species) || []).length))
-      : liRow(past ? 'HOUR' : 'NOW', past ? 'final hour' : 'last hour', fmtN(last_hour))
-        + liRow(past ? 'DAY' : 'TODAY', past ? 'selected date' : 'today', fmtN(today_det))
-        + liRow('7D', past ? 'through this date' : 'last 7 days', fmtN(week_det))
-        + liRow('ALL', past ? 'through this date' : 'all time', fmtN(all_det));
+      ? liRow('RUFE', 'Erkennungen', fmtN(all_det))
+        + liRow('VÖGEL', 'einzigartige Arten', fmtN((((DATA.lifelist || {}).species) || []).length))
+      : liRow(past ? 'STUNDE' : 'JETZT', past ? 'letzte Stunde' : 'letzte Stunde', fmtN(last_hour))
+        + liRow(past ? 'TAG' : 'HEUTE', past ? 'ausgewählter Tag' : 'heute', fmtN(today_det))
+        + liRow('7 T', past ? 'bis zu diesem Datum' : 'letzte 7 Tage', fmtN(week_det))
+        + liRow('ALLE', past ? 'bis zu diesem Datum' : 'gesamter Zeitraum', fmtN(all_det));
 
     // Top Species - top 5 species in the current window. ./avian/api/birdnet-api.php?action=recent
     // already returns species sorted by last_seen DESC; re-sort by count.
@@ -3504,8 +3504,8 @@
       ? ranked.map(function (s, i) { return liRow(pad(i + 1), s.com, fmtN(+s.n), s.sci); }).join('')
       : '<li class="stats-window-empty"><span class="window-empty">' + EMPTY_WINDOW_COPY + '</span></li>';
     document.getElementById('statsTopSpecCap').textContent = scopedLabel
-      ? 'most-heard, ' + scopedLabel
-      : 'most-heard, ' + statsWindowLabel(currentHours);
+      ? 'am häufigsten gehört, ' + scopedLabel
+      : 'am häufigsten gehört, ' + statsWindowLabel(currentHours);
 
     // First Detections - newest additions to the life list, with a
     // "Xd ago" label computed from first_seen.
@@ -3518,11 +3518,11 @@
         var label = '-';
         if (!isNaN(t)) {
           var daysAgo = Math.floor((now - t) / 86400000);
-          label = daysAgo === 0 ? (past ? 'that day' : 'today') : daysAgo + (past ? 'd prior' : 'd ago');
+          label = daysAgo === 0 ? (past ? 'an diesem Tag' : 'heute') : daysAgo + (past ? ' Tage zuvor' : ' Tage her');
         }
         return liRow(label, s.com, '', s.sci);
       }).join('')
-      : liRow('-', 'no detections yet', '');
+      : liRow('-', 'noch keine Erkennungen', '');
   }
 
   // ---- Day's Rhythm + hourly ledger ----
@@ -3699,7 +3699,7 @@
         title.textContent = "Hour's Rhythm";
         cap.textContent = 'detections through the selected hour, over the prior week\'s average';
       } else if (!hourlyDate && DATA.stats && DATA.stats.is_today && currentHours < 1000000) {
-        title.textContent = "Today's Rhythm";
+        title.textContent = 'Tagesrhythmus';
         cap.textContent = currentHours <= 12
           ? 'detections through the current 12-hour window, over last week\'s average'
           : 'detections through the day, over last week\'s average';
@@ -3811,7 +3811,7 @@
     if (!d || isNaN(d.getTime())) return String(s || 'today');
     var opts = { month: 'short', day: 'numeric' };
     if (d.getFullYear() !== new Date().getFullYear()) opts.year = 'numeric';
-    return d.toLocaleDateString(undefined, opts);
+    return d.toLocaleDateString('de-DE', opts);
   }
   function stationToday() {
     return (DATA.stats && DATA.stats.station_date)
@@ -3835,7 +3835,7 @@
     var date = statsDateOnScreen();
     var today = stationToday();
     label.textContent = date === today && !hourlyDate ? 'today' : shortStatsDate(date);
-    label.setAttribute('aria-label', 'Choose stats date, ' + (date === today ? 'today' : shortStatsDate(date)));
+    label.setAttribute('aria-label', 'Statistikdatum auswählen, ' + (date === today ? 'heute' : shortStatsDate(date)));
     next.disabled = !hourlyDate || date >= today;
   }
   function isoLocalDate(d) {
@@ -3888,17 +3888,17 @@
     var firstHeard = (DATA.calendar || {}).first_date || null;
     var lastHeard = (DATA.calendar || {}).last_date || null;
     var counts = statsDateCounts();
-    title.textContent = first.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+    title.textContent = first.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
     var html = '';
     for (var blank = 0; blank < first.getDay(); blank++) html += '<span aria-hidden="true"></span>';
     for (var day = 1; day <= total; day++) {
       var date = isoLocalDate(new Date(year, month, day));
       var count = counts[date] || 0;
       var disabled = date > today || (firstHeard && date < firstHeard);
-      var readable = new Date(year, month, day).toLocaleDateString(undefined, {
+      var readable = new Date(year, month, day).toLocaleDateString('de-DE', {
         weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
       });
-      var aria = readable + (count ? ', ' + count + ' detection' + (count === 1 ? '' : 's') : ', no detections');
+      var aria = readable + (count ? ', ' + count + ' Erkennung' + (count === 1 ? '' : 'en') : ', keine Erkennungen');
       html += '<button type="button" role="gridcell" data-date="' + date + '"'
         + (count ? ' class="has-data' + (date === today ? ' is-today' : '') + '"' : (date === today ? ' class="is-today"' : ''))
         + ' aria-label="' + aria + '" aria-selected="' + (date === selected ? 'true' : 'false') + '"'
@@ -4241,7 +4241,7 @@
   };
 
   function wikiUrl(sci) {
-    return 'https://en.wikipedia.org/wiki/' + encodeURIComponent(sci.replace(/ /g, '_'));
+    return 'https://de.wikipedia.org/wiki/' + encodeURIComponent(sci.replace(/ /g, '_'));
   }
   function ebirdUrl(sci) {
     var code = EBIRD_CODES[sci];
@@ -8462,7 +8462,7 @@
     if (!d) return '';
     try {
       var date = new Date(d + 'T' + (t || '00:00:00'));
-      return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) +
+      return date.toLocaleDateString('de-DE', { month: 'short', day: 'numeric' }) +
         ' - ' + (t ? t.slice(0, 5) : '');
     } catch (e) { return d + ' ' + (t || ''); }
   }
@@ -9235,11 +9235,11 @@
       if (contentRequest !== POSTCARD_CONTENT_REQUEST) return;
       var s = j.summary || {};
       document.getElementById('modalCommon').textContent = s.com || sci;
-      document.getElementById('modalAllTime').textContent = (+s.total || 0).toLocaleString();
+      document.getElementById('modalAllTime').textContent = (+s.total || 0).toLocaleString('de-DE');
       document.getElementById('modalFirstSeen').textContent = s.first_seen ? fmtRecTime(s.first_seen.split(' ')[0], s.first_seen.split(' ')[1]) : '-';
       var rar = rarityLabel(+s.total || 0, s.first_seen);
       var rarEl = document.getElementById('modalRarity');
-      rarEl.textContent = rar;
+      rarEl.textContent = ({ common: 'häufig', regular: 'regelmäßig', occasional: 'gelegentlich', rare: 'selten' }[rar] || '-');
       if (rar === 'rare') rarEl.classList.add('rare');
       var dets = j.detections || [];
       document.getElementById('modalRecCount').textContent = dets.length + (dets.length === 1 ? ' recording' : ' recordings');
