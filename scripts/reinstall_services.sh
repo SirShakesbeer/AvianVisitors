@@ -9,6 +9,7 @@ export PATH
 umask 077
 
 readonly OFFICIAL_ORIGIN='https://github.com/Twarner491/AvianVisitors'
+readonly PERSONAL_ORIGIN='https://github.com/SirShakesBeer/AvianVisitors'
 readonly RELEASE_BRANCH='avian-visitors'
 readonly CONFIG_FILE='/etc/birdnet/birdnet.conf'
 readonly FIXED_HELPER='/usr/local/sbin/avian-service-refresh'
@@ -201,9 +202,12 @@ read_git_lines() {
 
 origin_url=$(git_station config --get remote.origin.url || true)
 case "$origin_url" in
-  "$OFFICIAL_ORIGIN"|"$OFFICIAL_ORIGIN.git") ;;
+  "$OFFICIAL_ORIGIN"|"$OFFICIAL_ORIGIN.git") trusted_origin="$OFFICIAL_ORIGIN" ;;
+  "$PERSONAL_ORIGIN"|"$PERSONAL_ORIGIN.git"|git@github.com:SirShakesBeer/AvianVisitors.git)
+    trusted_origin="$PERSONAL_ORIGIN"
+    ;;
   '') die 'origin is not configured' ;;
-  *) die "origin must be $OFFICIAL_ORIGIN" ;;
+  *) die "origin must be $OFFICIAL_ORIGIN or $PERSONAL_ORIGIN" ;;
 esac
 
 current_branch=$(git_station symbolic-ref --quiet --short HEAD || true)
@@ -221,7 +225,7 @@ trap cleanup EXIT
 mkdir "$trusted_repo"
 git_trusted init --bare -q
 if ! git_trusted fetch --no-tags \
-  "${OFFICIAL_ORIGIN}.git" \
+  "${trusted_origin}.git" \
   "refs/heads/$RELEASE_BRANCH:refs/heads/$RELEASE_BRANCH"; then
   die "could not verify origin/$RELEASE_BRANCH"
 fi

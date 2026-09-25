@@ -10,6 +10,7 @@ export PATH
 umask 077
 
 readonly OFFICIAL_ORIGIN='https://github.com/Twarner491/AvianVisitors'
+readonly PERSONAL_ORIGIN='https://github.com/SirShakesBeer/AvianVisitors'
 readonly RELEASE_BRANCH='avian-visitors'
 readonly CONFIG_FILE='/etc/birdnet/birdnet.conf'
 readonly UPDATE_HELPER='/usr/local/sbin/avian-update-control'
@@ -54,8 +55,11 @@ configured_origin=$(runuser -u "$station_user" -- \
   GIT_CONFIG_GLOBAL=/dev/null PATH=/usr/local/bin:/usr/bin:/bin \
   git -C "$repo_dir" config --get remote.origin.url || true)
 case "$configured_origin" in
-  "$OFFICIAL_ORIGIN"|"$OFFICIAL_ORIGIN.git") ;;
-  *) die "origin must be $OFFICIAL_ORIGIN" ;;
+  "$OFFICIAL_ORIGIN"|"$OFFICIAL_ORIGIN.git") trusted_origin="$OFFICIAL_ORIGIN" ;;
+  "$PERSONAL_ORIGIN"|"$PERSONAL_ORIGIN.git"|git@github.com:SirShakesBeer/AvianVisitors.git)
+    trusted_origin="$PERSONAL_ORIGIN"
+    ;;
+  *) die "origin must be $OFFICIAL_ORIGIN or $PERSONAL_ORIGIN" ;;
 esac
 
 work_dir=$(mktemp -d /var/tmp/avian-v1-bootstrap.XXXXXX)
@@ -70,7 +74,7 @@ trusted_git() {
 }
 
 trusted_git init --bare -q
-if ! trusted_git fetch --no-tags "${OFFICIAL_ORIGIN}.git" \
+if ! trusted_git fetch --no-tags "${trusted_origin}.git" \
   "refs/heads/$RELEASE_BRANCH:refs/heads/$RELEASE_BRANCH"; then
   die "could not fetch the official $RELEASE_BRANCH release"
 fi
