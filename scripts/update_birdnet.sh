@@ -8,6 +8,7 @@ export PATH
 umask 077
 
 readonly OFFICIAL_ORIGIN='https://github.com/Twarner491/AvianVisitors'
+readonly PERSONAL_ORIGIN='https://github.com/SirShakesbeer/AvianVisitors'
 readonly RELEASE_BRANCH='avian-visitors'
 readonly CONFIG_FILE='/etc/birdnet/birdnet.conf'
 readonly UPDATE_HELPER='/usr/local/sbin/avian-update-control'
@@ -204,9 +205,11 @@ run_as_station chmod 0700 "$state_dir"
 
 origin_url=$(git_station config --get remote.origin.url || true)
 case "$origin_url" in
-  "$OFFICIAL_ORIGIN"|"$OFFICIAL_ORIGIN.git") ;;
+  "$OFFICIAL_ORIGIN"|"$OFFICIAL_ORIGIN.git" \
+    |"$PERSONAL_ORIGIN"|"$PERSONAL_ORIGIN.git" \
+    |git@github.com:SirShakesbeer/AvianVisitors.git) ;;
   '') die 'origin is not configured' ;;
-  *) die "origin must be $OFFICIAL_ORIGIN" ;;
+  *) die "origin must be $OFFICIAL_ORIGIN or $PERSONAL_ORIGIN" ;;
 esac
 
 # User-level Git URL rewrites are ignored above. Reject equivalent repository

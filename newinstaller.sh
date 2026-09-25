@@ -55,7 +55,8 @@ if [[ ! -z $PACKAGES_MISSING ]] ; then
 fi
 
 branch=avian-visitors
-git clone -b $branch --depth=1 https://github.com/Twarner491/AvianVisitors.git ${HOME}/BirdNET-Pi &&
+repository=https://github.com/SirShakesBeer/AvianVisitors.git
+git clone -b "$branch" --depth=1 "$repository" "${HOME}/BirdNET-Pi" &&
 
 "$HOME/BirdNET-Pi/scripts/install_birdnet.sh" "${installer_args[@]}"
 if [ ${PIPESTATUS[0]} -eq 0 ];then
