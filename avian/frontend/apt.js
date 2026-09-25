@@ -1132,7 +1132,12 @@
   }
 
   function collageImageSrc(sci, pose, commonName) {
-    return defaultCutoutSrc(sci, pose, IMG_VERSION, commonName);
+    var slug = slugify(sci);
+    var suffix = +pose > 1 ? '-' + (+pose) : '';
+    // Bundled art is already public and avoids the protected dynamic resolver.
+    // Keep the resolver as the fallback for generated species.
+    return './avian/assets/illustrations/' + slug + suffix + '.png?v=' +
+      artRevision(sci, IMG_VERSION);
   }
 
   // Tunables - Galliformes-poster-inspired. Raster-mask nesting.
@@ -2919,7 +2924,15 @@
       btn.style.top = r.y + 'px';
       btn.style.width = r.fullW + 'px';
       btn.style.height = r.fullH + 'px';
-      btn.innerHTML = '<img loading="lazy" decoding="async" src="' + img + '" alt="' + s.com + '">';
+      btn.innerHTML = '<img loading="lazy" decoding="async" src="' + img +
+        '" data-fallback-src="' + defaultCutoutSrc(s.sci, r.pose, IMG_VERSION, s.com) +
+        '" alt="' + s.com + '">';
+      var birdImage = btn.querySelector('img');
+      if (birdImage) birdImage.addEventListener('error', function () {
+        var fallback = birdImage.getAttribute('data-fallback-src');
+        if (!fallback || birdImage.src.indexOf('/avian/api/cutout.php') !== -1) return;
+        birdImage.src = fallback;
+      }, { once: true });
       if (r.labelRows) {
         addLabelInk();
         // One baseline per line of the name, each riding the line the planner
@@ -5145,22 +5158,22 @@
     btn.setAttribute('data-state', state);
     if (state === 'playing') {
       btn.setAttribute('data-active', 'true');
-      btn.innerHTML = ICON_PAUSE + '<span>stop</span>';
+      btn.innerHTML = ICON_PAUSE + '<span>stoppen</span>';
     } else if (state === 'loading') {
       btn.setAttribute('data-active', 'true');
-      btn.innerHTML = ICON_PLAY + '<span>...</span>';
+      btn.innerHTML = ICON_PLAY + '<span>lädt ...</span>';
     } else if (state === 'missing') {
       btn.setAttribute('data-active', 'false');
-      btn.innerHTML = ICON_PLAY + '<span>no audio</span>';
+      btn.innerHTML = ICON_PLAY + '<span>kein Ton</span>';
       setTimeout(function () {
         if (btn.getAttribute('data-state') === 'missing') {
-          btn.innerHTML = ICON_PLAY + '<span>play</span>';
+          btn.innerHTML = ICON_PLAY + '<span>abspielen</span>';
           btn.setAttribute('data-state', 'idle');
         }
       }, 2200);
     } else {
       btn.setAttribute('data-active', 'false');
-      btn.innerHTML = ICON_PLAY + '<span>play</span>';
+      btn.innerHTML = ICON_PLAY + '<span>abspielen</span>';
     }
   }
   function clearAtlasCardProgress(card) {
@@ -5312,8 +5325,8 @@
     recent.forEach(function (s) { winBySci[s.sci] = +s.n; recentBySci[s.sci] = s; });
 
     if (!lifelist.length) {
-      showAtlasEmpty('No birds detected yet.',
-        'The atlas fills up as BirdNET-Pi identifies new species.');
+      showAtlasEmpty('Noch keine Vögel erkannt.',
+        'Der Atlas füllt sich, sobald BirdNET-Pi neue Arten erkennt.');
       return;
     }
 
@@ -5395,11 +5408,11 @@
       // The "all time" window makes the windowed count identical to the
       // all-time count - collapse to a single stat rather than print the
       // same number twice. Otherwise label the count with its span.
-      var allLabel = educatorScopeId() ? educatorScopeLabel(effectiveEducatorScope) : 'all time';
+      var allLabel = educatorScopeId() ? educatorScopeLabel(effectiveEducatorScope) : 'insgesamt';
       var statRows = isAllWindow
         ? '<div><span class="n">' + fmtNK(total) + '</span><span class="lbl-inline">' + escHtml(allLabel) + '</span></div>'
         : '<div><span class="n">' + fmtNK(win) + '</span><span class="lbl-inline">' + windowLabel(atlasHours, DATA.recent) + '</span></div>'
-        + '<div><span class="n">' + fmtNK(total) + '</span><span class="lbl-inline">all time</span></div>';
+        + '<div><span class="n">' + fmtNK(total) + '</span><span class="lbl-inline">insgesamt</span></div>';
       // Heard but never drawn: issue the bird's real family stamp with the
       // egg nest occupying its artwork plate. Waiting on tablesReady keeps
       // a card from flashing the placeholder before dims.json lands.
@@ -5428,8 +5441,8 @@
           + '<div class="sci">' + escHtml(s.sci) + '</div>'
           + '<div class="spectro-wrap" aria-hidden="true"></div>'
           + '<div class="actions">'
-          + '<button type="button" class="chip play" data-action="play" aria-label="play recording">'
-          + ICON_PLAY + '<span>play</span>'
+          + '<button type="button" class="chip play" data-action="play" aria-label="Aufnahme abspielen">'
+          + ICON_PLAY + '<span>abspielen</span>'
           + '</button>'
           + '<a class="chip ext" href="' + escHtml(birdWiki) + '" target="_blank" rel="noopener" aria-label="Wikipedia">wiki</a>'
           + (birdEbird ? '<a class="chip ext" href="' + escHtml(birdEbird) + '" target="_blank" rel="noopener" aria-label="eBird">ebird</a>' : '')
@@ -9193,11 +9206,11 @@
     document.getElementById('modalFirstSeen').textContent = '-';
     document.getElementById('modalRarity').textContent = '-';
     document.getElementById('modalRarity').classList.remove('rare');
-    document.getElementById('modalDesc').textContent = 'Loading description...';
+    document.getElementById('modalDesc').textContent = 'Beschreibung wird geladen ...';
     document.getElementById('modalDesc').classList.add('placeholder');
     var previousDistinctive = document.querySelector('.postcard-about .about-distinctive');
     if (previousDistinctive) previousDistinctive.remove();
-    document.getElementById('modalRecordings').innerHTML = '<li class="rec-empty">Loading recordings...</li>';
+    document.getElementById('modalRecordings').innerHTML = '<li class="rec-empty">Aufnahmen werden geladen ...</li>';
     document.getElementById('modalRecCount').textContent = '';
     document.getElementById('modalWiki').href = wikiUrl(sci);
     var ebirdLink = document.getElementById('modalEbird');
@@ -9254,7 +9267,7 @@
             + '<span class="date-time"><b>' + fmtDateLine(d.d, d.t) + '</b></span>'
             + '</button>'
             + '<div class="rec-spectro" aria-hidden="true">'
-            + '<div class="rec-spectro-loading">loading spectrogram...</div>'
+            + '<div class="rec-spectro-loading">Spektrogramm wird geladen ...</div>'
             + '<div class="rec-spectro-played"></div>'
             + '<div class="rec-loop-region" aria-hidden="true"></div>'
             + '<div class="rec-spectro-cursor"></div>'
@@ -9262,18 +9275,18 @@
             + '<button class="rec-loop-handle" data-edge="start" type="button" role="slider" aria-label="Repeat section start" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="-1"></button>'
             + '<button class="rec-loop-handle" data-edge="end" type="button" role="slider" aria-label="Repeat section end" aria-valuemin="0" aria-valuemax="100" aria-valuenow="25" tabindex="-1"></button>'
             + '<div class="rec-player-controls">'
-            + '<button class="rec-player-toggle" type="button" aria-label="Play recording">' + ICON_PLAY + '</button>'
+            + '<button class="rec-player-toggle" type="button" aria-label="Aufnahme abspielen">' + ICON_PLAY + '</button>'
             + '<span class="rec-player-time" aria-hidden="true">0:00 / --:--</span>'
             + '<button class="rec-loop-toggle" type="button" aria-label="Repeat a selected section" aria-pressed="false">' + ICON_LOOP + '<span>loop</span></button>'
             + '</div>'
             + '</div>'
             + '</li>';
         }).join('')
-        : '<li class="rec-empty">No recordings yet.</li>';
+        : '<li class="rec-empty">Noch keine Aufnahmen.</li>';
       document.getElementById('modalRecordings').scrollTop = 0;
     }).catch(function () {
       if (contentRequest !== POSTCARD_CONTENT_REQUEST) return;
-      document.getElementById('modalRecordings').innerHTML = '<li class="rec-empty">Failed to load recordings.</li>';
+      document.getElementById('modalRecordings').innerHTML = '<li class="rec-empty">Aufnahmen konnten nicht geladen werden.</li>';
     });
 
     // Wikipedia lead (description + genus / family). `format=6` deliberately
